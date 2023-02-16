@@ -12,16 +12,20 @@ module Lib (
     encodeKey,
     AES256,
     CryptoIV (CryptoIV),
-    EncryptedMessage (EncryptedMessage),
+    EncryptedMessage (EncryptedMessage, renderEncryptedMessage),
     Key (Key),
 ) where
 
 import Control.Exception (Exception)
-import Crypto.Cipher.AES
-import Crypto.Cipher.Types
+import Crypto.Cipher.AES (AES256)
+import Crypto.Cipher.Types (
+    BlockCipher (blockSize, ctrCombine),
+    Cipher (cipherInit),
+    IV,
+    makeIV,
+ )
 import Crypto.Error (CryptoError (..), CryptoFailable (..))
 import Crypto.Random.Types qualified as CRT
-import Data.Bifunctor (Bifunctor (second))
 import Data.ByteArray (ByteArray, ByteArrayAccess)
 import Data.ByteArray qualified as BA
 import Data.ByteString (ByteString)

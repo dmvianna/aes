@@ -2,9 +2,8 @@
 
 module Main (main) where
 
-import Control.Monad.IO.Class (MonadIO (liftIO))
 import Data.ByteString (ByteString)
-import Lib
+import Lib (AES256, Key, decode, encode, encodeKey)
 
 algo :: AES256
 algo = undefined
