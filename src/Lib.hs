@@ -1,9 +1,8 @@
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE GeneralisedNewtypeDeriving #-}
 {-# LANGUAGE ImportQualifiedPost #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -17,10 +16,12 @@ module Lib (
     Key (Key),
 ) where
 
+import Control.Exception (Exception)
 import Crypto.Cipher.AES
 import Crypto.Cipher.Types
 import Crypto.Error (CryptoError (..), CryptoFailable (..))
 import Crypto.Random.Types qualified as CRT
+import Data.Bifunctor (Bifunctor (second))
 import Data.ByteArray (ByteArray, ByteArrayAccess)
 import Data.ByteArray qualified as BA
 import Data.ByteString (ByteString)
@@ -53,6 +54,12 @@ genRandomIV _ = do
     bytes :: ByteString <- CRT.getRandomBytes $ blockSize (undefined :: c)
     return $ makeIV bytes
 
+-- | Initialize a block cipher
+initCipher :: (BlockCipher c, ByteArray a) => Key c a -> Either CryptoError c
+initCipher (Key k) = case cipherInit k of
+    CryptoFailed e -> Left e
+    CryptoPassed a -> Right a
+
 serialiseIV ::
     forall c.
     BlockCipher c =>
@@ -68,15 +75,52 @@ deserialiseIV = makeIV
 
 encode ::
     (BlockCipher c, ByteArray secret, ByteArray message) =>
+    c ->
     Key c secret ->
     message ->
-    (CryptoIV, EncryptedMessage)
-encode = undefined
+    IO (Either AESError (CryptoIV, EncryptedMessage))
+encode c key msg = do
+    mIv <- genRandomIV c
+    case mIv of
+        Just iv -> do
+            case transcode iv key msg of
+                Left e -> pure $ Left e
+                Right (civ, msg') -> pure $ Right (civ, EncryptedMessage msg')
+        Nothing -> pure . Left $ AESErrorIV
+
+transcode ::
+    (BlockCipher c, ByteArray message, ByteArray secret, ByteArray a) =>
+    IV c ->
+    Key c a ->
+    message ->
+    Either AESError (CryptoIV, secret)
+transcode iv key msg =
+    case initCipher key of
+        Right cipher ->
+            Right
+                ( CryptoIV . serialiseIV $ iv
+                , ctrCombine cipher iv (BA.convert msg)
+                )
+        Left e -> Left $ AESErrorCrypto e
 
 decode ::
-    (BlockCipher c, ByteArray message, ByteArray secret) =>
-    Key c secret ->
+    (BlockCipher c) =>
+    c ->
+    Key c ByteString ->
     CryptoIV ->
     EncryptedMessage ->
-    message
-decode = undefined
+    Either AESError ByteString
+decode _ key civ msg =
+    let mIV = deserialiseIV civ.renderCryptoIV
+     in case mIV of
+            Nothing -> Left AESErrorIV
+            Just iv -> case transcode iv key msg of
+                Left e -> Left e
+                Right (_, msg') -> Right msg'
+
+data AESError
+    = AESErrorCrypto CryptoError
+    | AESErrorIV
+    deriving (Show)
+
+instance Exception AESError
