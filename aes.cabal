@@ -1,0 +1,73 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.35.1.
+--
+-- see: https://github.com/sol/hpack
+
+name:           aes
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/dmvianna/aes#readme>
+homepage:       https://github.com/dmvianna/aes#readme
+bug-reports:    https://github.com/dmvianna/aes/issues
+author:         Daniel Vianna
+maintainer:     1708810+dmvianna@users.noreply.github.com
+copyright:      2023 Daniel Vianna
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    CHANGELOG.md
+
+source-repository head
+  type: git
+  location: https://github.com/dmvianna/aes
+
+library
+  exposed-modules:
+      Lib
+  other-modules:
+      Paths_aes
+  hs-source-dirs:
+      src
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded
+  build-depends:
+      base >=4.7 && <5
+    , bytestring
+    , cryptonite >=0.3.0
+    , memory
+  default-language: Haskell2010
+
+executable aes-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_aes
+  hs-source-dirs:
+      app
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      aes
+    , base >=4.7 && <5
+    , bytestring
+    , cryptonite >=0.3.0
+    , memory
+  default-language: Haskell2010
+
+test-suite aes-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_aes
+  hs-source-dirs:
+      test
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      HUnit
+    , aes
+    , base >=4.7 && <5
+    , bytestring
+    , cryptonite >=0.3.0
+    , file-embed
+    , hspec
+    , memory
+  default-language: Haskell2010
