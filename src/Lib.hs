@@ -1,11 +1,20 @@
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE GADTs #-}
+{-# LANGUAGE GeneralisedNewtypeDeriving #-}
 {-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Lib (
     encode,
     decode,
+    encodeKey,
+    AES256,
+    CryptoIV (CryptoIV),
+    EncryptedMessage (EncryptedMessage),
+    Key (Key),
 ) where
 
 import Crypto.Cipher.AES
@@ -21,7 +30,10 @@ data Key c a where
     Key :: (BlockCipher c, ByteArray a) => a -> Key c a
 
 newtype EncryptedMessage = EncryptedMessage {renderEncryptedMessage :: ByteString}
+    deriving newtype (Ord, Eq, Monoid, Semigroup, ByteArray, ByteArrayAccess)
+
 newtype CryptoIV = CryptoIV {renderCryptoIV :: ByteString}
+    deriving newtype (Ord, Eq, Monoid, Semigroup, ByteArray, ByteArrayAccess)
 
 encodeKey ::
     forall c a.
