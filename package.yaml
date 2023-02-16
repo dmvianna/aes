@@ -35,10 +35,12 @@ ghc-options:
 - -Wmissing-home-modules
 - -Wpartial-fields
 - -Wredundant-constraints
-- -threaded
+
 
 library:
   source-dirs: src
+  exposed-modules: Lib
+  other-modules: []
 
 executables:
   aes-exe:
@@ -50,6 +52,7 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - aes
+    other-modules: []
 
 tests:
   aes-test:
@@ -64,3 +67,4 @@ tests:
     - file-embed
     - hspec
     - HUnit
+    other-modules: []

@@ -74,18 +74,18 @@ deserialiseIV ::
 deserialiseIV = makeIV
 
 encode ::
-    (BlockCipher c, ByteArray secret, ByteArray message) =>
+    (BlockCipher c, ByteArray a, ByteArray message, ByteArray encrypted) =>
     c ->
-    Key c secret ->
+    Key c a ->
     message ->
-    IO (Either AESError (CryptoIV, EncryptedMessage))
+    IO (Either AESError (CryptoIV, encrypted))
 encode c key msg = do
     mIv <- genRandomIV c
     case mIv of
         Just iv -> do
             case transcode iv key msg of
                 Left e -> pure $ Left e
-                Right (civ, msg') -> pure $ Right (civ, EncryptedMessage msg')
+                Right (civ, msg') -> pure $ Right (civ, msg')
         Nothing -> pure . Left $ AESErrorIV
 
 transcode ::
